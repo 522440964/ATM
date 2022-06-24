@@ -1,545 +1,1541 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<time.h>
-
-struct Transaction
+#include <stdio.h>
+#include <stdlib.h>//使用system 函数的头文件 
+#include <windows.h>
+int order = 1; //计数  账号下标 
+int QueRenMiMa[10]; //匹配密码是否相同  用于注册时 第二次输入的密码与第一次输入的密码比较 
+int status = 0;	//初始状态为正常
+//                定义结构体变量 包含 账号 用户名 密码 钱 联系电话  状态 
+struct  account
 {
-	char username[100];
-	time_t timestamp;
-	int type;//0-取款，1-存款
-	int amount;
+	int id ;//账户 
+	char Name[20];	//用户名
+	int Password;//密码
+	double money;//钱
+	char  numble[12];//联系电话f
+	int  status;	//状态：0正常 1挂失 2销户
 	
-	struct Transaction * next;
 };
-typedef struct Transaction Transaction;
+struct  account  user[10]; 
+//声明判断用户是否存在函数 状态函数 
+int judge_exist(int a);	//声明判断用户名是否存在
+int judge_exist2(int a);//英文版 
+int judge_status(int a); //声明判断用户状态 0正常 1冻结
+int judge_status2(int a);//英文版	 
 
-//交易记录信息链表 
-Transaction * tHead=NULL;
-Transaction * tTail=NULL;
-Transaction * curTransaction=NULL;
+void xinxi()                   //将数据写入文件中
+{
+	int i;
+	FILE *fp;
+	fp=fopen("C:\ATM.txt","w");
+	for(i=1;i<11;i++)
+	{//将数据写入文件 
+		fprintf(fp,"账号：%d\t姓名：%s\t密码：%d\t余额：%f\t联系电话：%s\n",user[i].id,user[i].Name,user[i].Password,user[i].money,user[i].numble);
+	}
+	fclose(fp);
+}
 
-struct Account
+void  V()//提示语
 {
-	char name[100];
-	char password[7];
-	char username[19];
-	char idCard[19];
-	char tel[12];
-	float money;
-	struct Account* next;
-};
-typedef struct Account Account;
-int language;//1-中文,2-English
-Account* head=NULL;//指向头结点的指针
-Account* tail=NULL;//指向尾结点的指针
-Account *curAccount=NULL;//记录当前账户
-Account * otherAccount=NULL;//记录对方账户  
-int findAccount(Account a)
+	printf("\t***************************************************\n");
+	printf("\t*****************欢迎使用ATM取款机*****************\n");
+	printf("\t***************************************************\n"); 
+	system("pause");
+} 
+void V1()//返回菜单页倒计时提示 
 {
-	Account *curp=head;
-	while(curp!=NULL)
+	   printf("3秒后返回菜单页...\n\n");
+	   Sleep(3000);//三秒倒计时 
+	   system("cls");//清屏 
+}
+void V2()//返回菜单页倒计时提示 
+{	printf("Return to the menu page after 3 seconds ...\n");//3秒后返回菜单页 
+Sleep(3000);//三秒倒计时 
+system("cls");//清屏 
+}
+void Q1()//提示词 
+{
+	Sleep(400);
+				printf("正在点钞中请稍后");
+				printf("...");
+				Sleep(400);
+				printf("...");
+				Sleep(400);
+				printf("...");
+				Sleep(400);
+				printf("...\n");
+				Sleep(400);
+} 
+void Q2()//提示词 
+{
+	Sleep(400);
+				printf("The money is being counted. Just a moment, please ");
+				printf("...");
+				Sleep(400);
+				printf("...");
+				Sleep(400);
+				printf("...");
+				Sleep(400);
+				printf("...\n");
+				Sleep(400);
+} 
+void date()   //显示当前日期
+{
+    printf("\t当前日期:");
+    system("date/t");
+    printf("\t当前时间:");
+    system("time/t"); 	
+}
+void date2()   //显示当前日期
+{    printf("Current date:");
+system("date/t");
+printf("Current time:");
+system("time/t"); 	
+}
+
+
+void Disolay()//菜单页 
+{   void  zhuce(); void  zhuce3();//注册 
+void Disolay();//菜单 
+void Disolay2();//英文版菜单 
+void  cunkuan();  //存款	
+void  Qut();     //取款	
+void  Search();  //查询 
+void  Lose();     //挂失 
+void  UnLose();	 //解挂
+void  XiaoHu();   //销户
+void  Move_Money();//转账
+void  ChangePassword();//改密 
+void  tuichu();  //退出 
+void xinxi();//数据存入 
+system("color 6F");system("cls");
+int i=0;
+while(1)//  死循环 
+{      date();//日期 
+printf("\t*******************************************************\n"); 
+printf("\t-----------1.注册------------2.存款--------------------\n"); 
+printf("\t-----------3.取款------------4.查询--------------------\n"); 	
+printf("\t---------- 5.转账------------6.挂失--------------------\n"); 
+printf("\t-----------7.颜色------------8.销户--------------------\n"); 
+printf("\t-----------9.改密------------10.更换语言---------------\n");
+printf("\t**********11.退出系统**********************************\n"); 
+printf("\t*******************************************************\n"); 
+printf("\t请选择您要办理的业务!\n"); 
+scanf("%d",&i);system("cls");
+switch(i)
+{  
+case 1:printf("###################正在办理注册业务###################\n\n\n");
+	system("color 5F");//颜色 
+	zhuce3(); //将输入数据存入文本文件 
+	break; 
+case 2:printf("###################正在办理存款业务####################\n\n\n");
+	cunkuan();//存款业务 
+	xinxi();//存入办理业务后的数据 
+	break; 
+case 3: printf("###################正在办理取款业务###################\n\n\n"); 
+	Qut(); //取款业务
+	xinxi(); //存入办理业务后的数据
+	break;
+case 4: printf("###################正在办理查询业务###################\n\n\n");
+	Search();//查询 业务
+	xinxi(); //存入办理业务后的数据
+	break; 
+	
+case 5: printf("##################正在办理转账业务####################\n\n\n"); 
+	Move_Money();	//转账业务 
+	xinxi();//存入办理业务后的数据
+	break;
+case 6:printf("###################正在办理挂失业务####################\n\n\n");
+	Lose();//挂失业务 
+	xinxi();//存入办理业务后的数据
+	break;
+case 7:printf("###################正在办理解挂业务####################\n\n\n");  
+	UnLose();//颜色 业务 
+	xinxi();//存入办理业务后的数据
+	break;
+case 8:printf("###################正在办理销户业务####################\n\n\n"); 
+	XiaoHu();//销户业务 
+	xinxi(); //存入办理业务后的数据
+	break;
+case 9:printf("###################正在办理改密业务####################\n\n\n");
+	ChangePassword();//改密 
+	xinxi();//存入办理业务后的数据
+	break;
+case 10:printf("###################正在办理更改语言业务####################\n\n\n");
+	int i;
+	printf("\n\t请选择语言：1.中文 2.English\n");
+	scanf("%d",&i); 
+	switch(i)
 	{
-		if((strcmp(curp->username,a.username)==0)&&(strcmp(curp->password,a.password)==0))
+	case 1:      printf("\t5秒后更换语言...\n"); 
+		printf("\t正在更换语言...");
+		printf("...");
+		Sleep(500);
+		printf("...");
+		Sleep(500);
+		printf("...");
+		Sleep(500);
+		printf("...");
+		Sleep(500);
+		Sleep(2000);
+		system("cls");
+		Disolay();// 菜单函数 
+		break;
+	case 2:
+		printf("\t5秒后更换语言...\n\n"); 
+		printf("\t正在更换语言...");
+		printf("...");
+		Sleep(500);
+		printf("...");
+		Sleep(500);
+		printf("...");
+		Sleep(500);
+		printf("...");
+		Sleep(500);
+		Sleep(2000);
+		system("cls");
+		Disolay2();//英文版菜单函数 
+		break;
+	}
+	break;
+	case 11:printf("###################正在办理退出业务###################\n\n\n");
+		tuichu();
+		exit(0);
+		break; 
+}
+}
+}
+
+
+void Disolay2()//英文版菜单页 
+{   
+	void  zhuce2();    //注册 
+	void  cunkuan2();  //存款	
+	void  Qut2();     //取款	
+	void  Search2();  //查询  
+	void  Move_Money2();//转账
+	void  Lose2();     //挂失 
+	void  UnLose2();	 //颜色
+	void  XiaoHu2();   //销户
+	void  ChangePassword2();//改密 
+	void  tuichu2();  //退出 
+	system("color 6F");
+	system("cls");
+	int i=0;
+	while(1)
+	{ date2();
+	printf("\t********************************************************\n"); 
+	printf("\t----------1.Register-----------2.Deposit----------------\n"); 
+	printf("\t----------3.Qut----------------4.Query------------------\n"); 	
+	printf("\t--------- 5.Transfer-----------6.Lost-------------------\n"); 
+	printf("\t----------7.Color--------------8.Selling----------------\n"); 
+	printf("\t----------9.Change Password----10.changing language-----\n");
+	printf("\t**********11.Quit***************************************\n");  
+	printf("\t********************************************************\n"); 
+	printf("\tPlease select the business you want to handle !!\n"); 
+	scanf("%d",&i);
+	system("cls");
+	switch(i)
+	{  
+	case 1:printf("###################Registration is being handled########################\n\n\n");
+		system("color 5F");
+		zhuce2();//注册
+		xinxi(); //存入办理业务后的数据
+		break; 
+	case 2:printf("###################Deposit business is being handled####################\n\n\n");
+		cunkuan2();//存款业务 
+		xinxi();//存入办理业务后的数据
+		break; 
+	case 3: printf("##################The withdrawal business is being handled#############\n\n\n"); 
+		Qut2(); //取款业务
+		xinxi(); //存入办理业务后的数据
+		break;
+	case 4: printf("##################The query business is being handled##################\n\n\n");
+		Search2();//查询业务
+		xinxi();  //存入办理业务后的数据
+		break; 
+		
+	case 5: printf("##################Transfer business is being handled###################\n\n\n"); 
+		Move_Money2(); //转账业务
+		xinxi(); //存入办理业务后的数据
+		break;
+	case 6:printf("###################The business of reporting loss is being handled######\n\n\n");
+		Lose2();//挂失业务 
+		xinxi(); //存入办理业务后的数据
+		break;
+		
+	case 7:printf("###################Understand the hanging business######################\n\n\n");  
+		UnLose2();//颜色业务 
+		xinxi();  //存入办理业务后的数据
+		break;
+		
+	case 8:printf("###################Dealing with the sales business######################\n\n\n"); 
+		XiaoHu2();//销户业务
+		xinxi();  //存入办理业务后的数据
+		break;
+		
+	case 9:printf("##########The business of changing the secret is being processed #######\n\n\n");
+		ChangePassword2();//改密业务 
+		xinxi(); //存入办理业务后的数据
+		break;  
+	case 10:printf("##############Changing the language service is in progress ############\n\n\n");
+		int i;
+		printf("\n\t请选择语言：1.中文 2.English\n");
+		scanf("%d",&i); 
+		switch(i)
 		{
-			curAccount=curp;
-			return 1; 
+		case 1:    printf("\t5秒后更换语言...\n"); 
+			printf("\t正在更换语言...");
+			printf("...");
+			Sleep(500);
+			printf("...");
+			Sleep(500);
+			printf("...");
+			Sleep(500);
+			printf("...");
+			Sleep(500);
+			Sleep(2000);
+			system("cls");
+			Disolay();
+			break;
+		case 2:
+			printf("\tChange the language after 5 seconds ...\n"); 
+			printf("\tChanging the language...");
+			printf("...");
+			Sleep(500);
+			printf("...");
+			Sleep(500);
+			printf("...");
+			Sleep(500);
+			printf("...");
+			Sleep(500);
+			Sleep(2000);
+			system("cls");
+			Disolay2();     
+			break;
 		}
-		curp=curp->next;
+		break;
+		case 11:printf("############################Quit#######################################\n\n\n");
+			tuichu2();//退出业务 
+			exit(0);
+			break; 
 	}
-	return 0;
+	}
 }
 
-void drawMoney()
-{
-	if(language==1)
-	{
-		printf("请输入取款金额：");
-	    int money;
-	    scanf("%d",&money);
+
+void zhuce() //注册账号 
+{  	void  login();//声明登录函数 
+int id,Name,money,numble; 
+user[order].id = 1000 + order;//系统生成账号 
+printf("\t正在注册中请稍后.....\n\n");
+printf("\t您的账号为：%d\n",user[order].id);
+printf("\t请输入您的姓名：");
+scanf("%s",&user[order].Name);
+printf("\t请输入密码：");
+scanf("%d",&user[order].Password);
+printf("\t请再次输入密码：");
+scanf("%d",&QueRenMiMa[order]);
+printf("\t请输入电话号码：");
+scanf("%s",&user[order].numble);	               
+if(user[order].Password == QueRenMiMa[order]) 
+{             //判断两次输入的密码是否相等，相等则 将新设密码存入user[order].Password里
+	system("pause");system("cls");
+	printf("\n\n\t恭喜您，已经成功注册账户！！！\n\n\n");
+	printf("\t以下是您的账户信息！！！\n\n\n");
+	system("color 0C ");//颜色 
+	//显示注册账户的信息  注册时初始化状态为正常 
+	printf("\t账号：%d\n\t姓名：%s\n\t状态：正常\n\t余额：%lf元\n\t联系电话：%s\n\n\n",user[order].id,user[order].Name,user[order].money,user[order].numble);
 	
-	    //验证金额
-	    if(curAccount->money>=money)
-	    {
-		    printf("取款成功！\n");
-		    curAccount->money-=money;
-		
-		    //创建结点
-		    Transaction * newNode=(Transaction*)malloc(sizeof(Transaction)); 
-		
-		    //结点初始化
-		    newNode->next=NULL;
-		    strcpy(newNode->username,curAccount->username);
-		    newNode->timestamp=time(NULL);
-		    newNode->type=0;
-		    newNode->amount=money;
-		
-	    	//添加结点到链表
-		    if(tHead==NULL)
-		    {
-			    tHead=newNode;
-			    tTail=newNode;
-		    }
-		    else
-		    {
-			    tTail->next=newNode;
-			    tTail=newNode;
-		    }
-	    } 
-	    else
-	    {
-		    printf("余额不足！\n");
-	    }
-	}
-	else if(language==2)
-	{
-		printf("enter your draw money：");
-	    int money;
-	    scanf("%d",&money);
-	
-	    //验证金额
-	    if(curAccount->money>=money)
-	    {
-		    printf("withdrawal succeeded！\n");
-		    curAccount->money-=money;
-		
-		    //产生交易记录...	
-		
-		    //创建结点
-		    Transaction * newNode=(Transaction*)malloc(sizeof(Transaction)); 
-		
-		    //结点初始化
-		    newNode->next=NULL;
-		    strcpy(newNode->username,curAccount->username);
-		    newNode->timestamp=time(NULL);
-		    newNode->type=0;
-		    newNode->amount=money;
-		
-		    //添加结点到链表
-		    if(tHead==NULL)
-		    {
-			    tHead=newNode;
-			    tTail=newNode;
-		    }
-		    else
-		    {
-			    tTail->next=newNode;
-			    tTail=newNode;
-		    }
-	    } 
-	    else
-	    {
-		    printf("sorry,your credit is running low！\n");
-	    }
-	}
+	date();//日期 
+	system("pause");system("cls");Sleep(400);//倒计时400毫秒 
+	order++;//计数加一，以便下次注册匹配新的账号 
+	login();//注册成功后进入登录页面 
+}
+else
+{	printf("两次输入的密码不一样，注册失败了 -.-\n\n\n");
+user[order].Password = 0;//输入值为0 
+QueRenMiMa[order] = 0;//输入值为0  注册失败退出程序 
+}
 }
 
-void saveMoney()
-{
-	if(language==1)
-	{
-		printf("请输入存款金额：");
-	    int money;
-	    scanf("%d",&money);
-	    printf("存款成功！\n");
-	    curAccount->money+=money;
-	}
-	else if(language==2)
-	{
-		printf("enter your save money：");
-	    int money;
-	    scanf("%d",&money);
-	    printf("deposit succeeded！\n");
-	    curAccount->money+=money;
-	}
-}
 
-void updataPassword()//修改密码 
-{
-	if(language==1)
-	{
-		printf("请输入旧密码:");
-	    char oldpassword[100];
-	    scanf("%s",oldpassword);
-	    if(strcmp(oldpassword,curAccount->password)==0)
-	    {
-		    printf("请输入新密码:");
-		    scanf("%s",curAccount->password);
-		    if(strcmp(curAccount->password,oldpassword)==0)
-		    {
-			    for(int i=0;i<3;i++)
-			    {
-				    printf("新密码与旧密码相同，请重新输入:");
-			        scanf("%s",curAccount->password);
-			        if(strcmp(curAccount->password,oldpassword)!=0)
-			        {
-			    	    printf("修改成功!");
-			    	    break;
-				    }
-			    }
-		    }
-		    else
-		    {
-			    printf("修改成功!\n");
-		    }
-	    }
-	    else
-	    {
-		    printf("密码错误，不能修改!\n");
-	    }
-	}
-	else if(language==2)
-	{
-		printf("enter your old code:");
-	    char oldpassword[100];
-	    scanf("%s",oldpassword);
-	    if(strcmp(oldpassword,curAccount->password)==0)
-	    {
-		    printf("enter your new code:");
-		    scanf("%s",curAccount->password);
-		    if(strcmp(curAccount->password,oldpassword)==0)
-		    {
-			    for(int i=0;i<3;i++)
-			    {
-				    printf("the new code is the same as the old code,re-enter:");
-			        scanf("%s",curAccount->password);
-			        if(strcmp(curAccount->password,oldpassword)!=0)
-			        {
-			    	    printf("modified successfully!");
-			    	    break;
-				    }
-			    }
-		    }
-		    else
-		    {
-			    printf("modified successfully!\n");
-		    }
-	    }
-	    else
-	    {
-		    printf("the code is incorrect and cannot be modified!\n");
-	    }
-	}
-}
- 
-void signIn()//登录
-{
-	if(language==1)
-	{
-		for(int i=0;i<3;i++)
-	    {
-		    Account a;
-		    printf("请输入账号:");
-		    scanf("%s",a.username);
-		    printf("请输入密码:");
-		    scanf("%s",a.password);
-		    if(findAccount(a))
-		    {
-		    	printf("登陆成功!\n");
-			    return;
-		    }
-		    else
-		    {
-			    printf("登陆失败!\n");
-		    }
-	    }
-	}
-	else if(language==2)
-	{
-		for(int i=0;i<3;i++)
-	    {
-		    Account a;
-		    printf("enter your username:");
-		    scanf("%s",a.username);
-		    printf("enter your code:");
-		    scanf("%s",a.password);
-		    if(findAccount(a))
-		    {
-		    	printf("login successful!\n");
-			    break;
-		    }
-		    else
-		    {
-			    printf("login failed!\n");
-		    }
-	    }
-	}
-}
 
-void signUp()//注册
-{
-	//申请一块堆内存空间，将其地址赋值给指针newNode(创建节点）
-	Account* newNode=(Account*)malloc(sizeof(Account));
-	//结点赋值
-	if(language==1)
+void zhuce2()	//注册账号 
+{  
+	void  login2();//登录
+	int id,Name,money,numble; 
+	user[order].id = 1000 + order;
+	printf("Registration is in progress, please wait .....\n");
+	printf("Your account number is ：%d\n",user[order].id);
+	printf("Please enter your first name :");
+	scanf("%s",&user[order].Name);
+	printf("Please enter the password ：");
+	scanf("%d",&user[order].Password);
+	printf("Please enter the password  again：");
+	scanf("%d",&QueRenMiMa[order]);
+	printf("Please enter a contact number：");
+	scanf("%d",&user[order].numble);                  
+	if(user[order].Password == QueRenMiMa[order])
 	{
-	    printf("请输入姓名:\n");
-	    scanf("%s",newNode->name);
-	    printf("请输入密码:\n");
-	    scanf("%s",newNode->password);
-	    printf("请输入账号:\n");
-	    scanf("%s",newNode->username);
-	    printf("请输入身份证:\n");
-	    scanf("%s",newNode->idCard); 
-	    printf("请输入电话:\n");
-	    scanf("%s",newNode->tel);
-    }
-	else if(language==2)
-	{
-		printf("enter your name:\n");
-	    scanf("%s",newNode->name);
-	    printf("enter your code:\n");
-	    scanf("%s",newNode->password);
-	    printf("enter your account:\n");
-	    scanf("%s",newNode->username);
-	    printf("enter your idcard:\n");
-	    scanf("%s",newNode->idCard); 
-	    printf("enter your tel:\n");
-	    scanf("%s",newNode->tel);
-	}
-	newNode->money=0.0f;
-	newNode->next=NULL;
-	//添加结点到链表
-	if(head==NULL)
-	{
-		head=newNode;
-		tail=newNode;
+		system("pause");
+       	system("cls");
+		printf("\n\n\tCongratulations, you have successfully registered your account!!!\n\n\n");//恭喜您，已经成功注册账户！！！
+		printf("\tTnere is your account information ！！！\n\n\n");//以下是您的账户信息
+		system("color 0C ");
+		printf("\tAccount：%d\n\tName：%s\n\tStatus：Normal\n\tBalance：%lfyuan\n\tContact Number：%d\n\n\n",user[order].id,user[order].Name,user[order].money,user[order].numble);system("pause");
+		system("cls");
+		Sleep(400);
+		order++;
+		login2(); 	
 	}
 	else
 	{
-		tail->next=newNode;
-		tail=newNode;
+		printf("Registration failed because the passwords you entered do not match -.-\n\n\n");
+		user[order].Password = 0;
+		QueRenMiMa[order] = 0;
 	}
-	printf("创建成功\n");
-} 
+}
+void zhuce3() //注册账号 
+{  	void  login();//声明登录函数 
+int id,Name,money,numble; 
+user[order].id = 1000 + order;//系统生成账号 
+printf("\t正在注册中请稍后.....\n\n");
+printf("\t您的账号为：%d\n",user[order].id);
+printf("\t请输入您的姓名：");
+scanf("%s",&user[order].Name);
+printf("\t请输入密码：");
+scanf("%d",&user[order].Password);
+printf("\t请再次输入密码：");
+scanf("%d",&QueRenMiMa[order]);
+printf("\t请输入电话号码：");
+scanf("%s",&user[order].numble);	               
+if(user[order].Password == QueRenMiMa[order]) 
+{             //判断两次输入的密码是否相等，相等则 将新设密码存入user[order].Password里
+	system("pause");system("cls");
+	printf("\n\n\t恭喜您，已经成功注册账户！！！\n\n\n");
+	printf("\t以下是您的账户信息！！！\n\n\n");
+	system("color 0C ");//颜色 
+	//显示注册账户的信息  注册时初始化状态为正常 
+	printf("\t账号：%d\n\t姓名：%s\n\t状态：正常\n\t余额：%lf元\n\t联系电话：%s\n\n\n",user[order].id,user[order].Name,user[order].money,user[order].numble);
+	
+	date();//日期 
+	system("pause");system("cls");Sleep(400);//倒计时400毫秒 
+	order++;//计数加一，以便下次注册匹配新的账号 
+	system("color 6F");//注册成功后进入菜单页面 
+}
+else
+{	printf("两次输入的密码不一样，注册失败了 -.-\n\n\n");
+user[order].Password = 0;//输入值为0 
+QueRenMiMa[order] = 0;//输入值为0  注册失败退出程序 
+}
+}
 
-//根据卡号查找对方账户，找到返回1，找不到返回0 
-int findOtherAccount(char otherUsername[])
+//                                                          判断用户状态............. 
+int judge_status(int a)//判断用户状态 0正常 1挂失 2冻结
 {
-	Account * curp=head;
-	while(curp!=NULL)
+	if(a == 0)
+		return 0;
+	if(a == 1)
 	{
-		if(strcmp(curp->username,otherUsername)==0)	
-		{
-			otherAccount = curp; 
-			return 1;
-		}
-		curp=curp->next;
-	} 
+		printf("该卡已经被挂失了哦！\n\n");
+		return 1;
+	}
+	if(a == 2)
+	{
+		printf("该卡已经被冻结了，请前往柜台办理相关业务！\n\n");
+		return 2;
+	}
 	return 0;
 }
 
-void transfer()
+
+int judge_status2(int a)//判断用户状态 0正常 1挂失 2冻结
 {
-	if(language==1)
+	if(a == 0)
+		return 0;
+	if(a == 1)
 	{
-		printf("请输入对方账户：");
-	    char otherUsername[100];
-	    scanf("%s",otherUsername);
-	
-	    //判断账户合法性
-	    if(findOtherAccount(otherUsername))
-	    {
-		    printf("请输入转账金额：");
-		    int money;
-		    scanf("%d",&money);
-		
-		    //判断金额的合法性
-		    if(curAccount->money>=money)
-		    {
-			    //转账（当前账户余额减少，对方账户余额增多）
-			    curAccount->money -= money;
-			    otherAccount->money += money;
-			    printf("转账成功!\n");
-		    }
-		    else
-		    {
-			    printf("余额不足！\n");
-	        }
-	    }
-    	else
-	    {
-		    printf("账户不存在\n");
-	    }
+		printf("The card has been reported lost ！\n\n");
+		return 1;
 	}
-	else if(language==2)
+	if(a == 2)
 	{
-		printf("enter opposite account：");
-	    char otherUsername[100];
-	    scanf("%s",otherUsername);
-	
-	    //判断账户合法性
-	    if(findOtherAccount(otherUsername))
-	    {
-		    printf("enter transfer amount：");
-		    int money;
-		    scanf("%d",&money);
-		
-		    //判断金额的合法性
-		    if(curAccount->money>=money)
-		    {
-			    //转账（当前账户余额减少，对方账户余额增多）
-			    curAccount->money -= money;
-			    otherAccount->money += money;
-			    printf("transfer succeeded!\n");
-		    }
-		    else
-		    {
-			    printf("sorry,your credit is running low！\n");
-	        }
-	    }
-    	else
-	    {
-		    printf("account dose not exist\n");
-	    }
+		printf("The card has been frozen, please go to the counter to handle related business !\n\n");
+		return 2;
+	}
+	return 0;
+}
+
+int judge_exist(int a)	
+//判断用户名是否存在 不存在是返回0     a是形参，id是实参，将前面输入id的值传向a 参加运算后 返回id(存在）或者0(不存在） 
+{
+	int j = 0;
+	for(int i = 0;i <= 10;i++)
+	{
+		if(a == user[i].id)
+		{
+			j = 1;	break;
+		}
+	}
+	if(j == 0)
+	{	a = 0;
+	printf("对不起该用户不存在！\n\n\n");
+	}
+	return a;
+}
+int judge_exist2(int a)
+//判断用户名是否存在 不存在是返回0     a是形参，id是实参，将前面输入id的值传向a 参加运算后 返回id(存在）或者0(不存在） 
+{
+	int j = 0;
+	for(int i = 0;i <= 10;i++)
+	{
+		if(a == user[i].id)
+		{
+			j = 1;break;
+		}
+	}
+	if(j == 0)
+	{	a = 0;
+	printf("Sorry, the user does not exist！\n\n\n");
+	}
+	return a;
+}
+
+
+
+int b(int a,int b)
+//该函数将输入的账号 密码分别传入a b进行运算，返回j，如果返回值为1，则登录成功 返回值为0 登录失败重新输入账号
+{
+	int i,j;
+	for(i=0;i<10;i++)//循环十次 
+	{  
+		if(user[i].id==a&&user[i].Password==b)
+		{//分别核对输入的账号密码，和注册时的账号密码，正确就返回1 错误返回0 
+			
+			j=1;
+			return j;
+		}
+	}
+	j=0;
+	return j;
+}
+
+
+
+
+void login()              
+{    //登录界面
+    system("color 3F");
+    int i,x,id,password,time=1;
+    int b(int a,int b);//声明函数 
+    system("cls");date();
+    printf("**********************请先登录***************************\n"); 
+    printf("\t请输入您的账号：");scanf("%d",&id);
+    printf("\t请输入您的密码：");scanf("%d",&password);
+    for(i=0;i<3;i++)
+	{   x=b(id,password);//将输入的账号和密码 带入 
+	if(x)
+	{//调用b函数 若返回值为1 则登录成功 返回值为0 登录失败 重新输入账号 密码同时time++, 
+		printf("\t登录成功！！！\n");
+		system("pause");
+		system("cls"); xinxi();
+		Disolay();//进入菜单页面 
+		break;
+	}
+	else
+	{  system("color 1F");
+	printf("账号或密码错误！！！\n");
+	system("pause");
+	system("cls");
+	printf("请重新输入账号: ");
+	scanf("%d",&id);
+	system("cls");
+	printf("请重新输入密码: ");
+	scanf("%d",&password);
+	system("cls");
+	time++;
+	}	
+	if(time>=3)//输入三次 退出程序  
+	{
+		printf("\t账号和密码输入错误3次，退出系统！！！\n");
+		break;
+	}
 	}
 }
 
-void showMenu()
+
+
+int b2(int a,int b)            //遍历函数
 {
-	while(1)
+	int i,j;
+	for(i=0;i<10;i++)
+    {   
+		if(user[i].id==a&&user[i].Password==b)
+		{	    j=1;
+		return j;
+		}
+	}
+    j=0;
+	return j;
+}
+void login2()               //登录界面
+{   date2();
+system("color 3F");
+int i,x,id,password,time=1;
+int b2(int a,int b);
+system("cls");
+printf("**********************Please login first ***************************\n"); 
+printf("Please enter your account：");//请输入您的账户
+scanf("%d",&id);
+printf("Please enter your password：");//请输入您的密码
+scanf("%d",&password);
+for(i=0;i<3;i++)
+{
+	x=b2(id,password);
+	if(x)
 	{
-		if(language==1)
-		{
-			system("cls");
-			printf("登录，请按1\n");
-			printf("开户，请按2\n");
-			printf("修改密码，请按3\n");
-			printf("取款，请按4\n");
-			printf("存款，请按5\n");
-			printf("转账，请按6\n"); 
-			printf("退出，请按7\n");
-		}
-		else if(language==2)
-		{
-			system("cls");
-			printf("sign in,press 1\n");
-			printf("sign up,press 2\n");
-			printf("change password,press 3\n");
-			printf("draw money,press 4\n");
-			printf("save money,press 5\n");
-			printf("transfer accounts,press 6\n");
-			printf("sign out,press 7\n");
-			system("pause");
-		}
-		int n;
-		scanf("%d",&n);
-		if(n==1)
-		{
-			system("cls");
-		 	signIn();
-		 	system("pause");
-		}
-		else if(n==2)
-	    {
-	    	system("cls");
-			signUp();
-			system("pause");
-		}
-		else if(n==3)
-		{
-			system("cls");
-			signIn();
-			updataPassword();
-			system("pause"); 
-		}
-		else if(n==4)
-		{
-			system("cls");
-			signIn();
-			drawMoney();
-			system("pause");
-		}
-		else if(n==5)
-		{
-			system("cls");
-			signIn();
-			saveMoney();
-			system("pause");
-		}
-		else if(n==6)
-		{
-			system("cls");
-			signIn();
-			transfer();
-			system("pause");
-		} 
-		else if(n==7)
-		{
-			system("cls");
-		 	return;
-		 	system("pause");
-		}
-		
+		printf("Login was successful ！！！\n");//登录成功
+		system("pause");xinxi();
+		system("cls"); 
+		Disolay2();//菜单页面 
+		break;
+	}
+	else
+	{  system("color 1F");
+	printf("The account or password is incorrect ！！！\n");//账户或密码错误
+	system("pause");
+	system("cls");
+	printf("Please re-enter the account: ");//请重新输入账户
+	scanf("%d",&id);
+	system("cls");
+	printf("Please re-enter the password: ");//请重新输入密码
+	scanf("%d",&password);
+	system("cls");
+	time++;
+	}	
+	if(time>2)
+	{	printf("The account and password are entered incorrectly and the system is exited three times！！！\n");//账号和密码输入错误3次，退出系统
+	break;
 	}
 }
-void printLinkedList()
-{
-	Account* curP=head;
-	while(curP!=NULL)
-	{
-		printf("%s\t%s\t%s\t%s\t%s\t%f\n",curP->name,curP->password,curP->username,curP->idCard,curP->tel,curP->money);
-		curP=curP->next;
-	}
 }
 
-void loadData()
+
+void cunkuan()	//存款 
+{   date();//日期 
+int  i,exist,status,id,password,order;
+double money;
+printf("请输入您的账号：");
+scanf("%d",&id);
+exist = judge_exist(id);//账号是否存在 
+if(exist != 0)
+{	order = id-1000;
+status = judge_status(user[order].status);//账号状态是否正常   
+if(status == 0)
+{	printf("请输入密码：");
+scanf("%d",&password);
+if(password == user[order].Password)//判断密码是否正确 
+{	printf("账户名：%s\n",user[order].Name);
+printf("****************请选择您的存款金额*****************\n");
+printf("-----------1.100元-------------2.200元-------------\n"); 
+printf("-----------3.500元-------------4.1000元------------\n"); 
+printf("---------- 5.2000元------------6.其他金额----------\n"); 
+printf("***************************************************\n");
+printf("*************************************************\n\n"); 
+printf("请输入您要存款金额并将现金放入钞票口............\n\n");
+scanf("%d",&i);system("cls");
+switch(i)
 {
-	FILE* fp=fopen("D:/atm.txt","r"); 
-	if(fp!=NULL)
+case 1: user[order].money=user[order].money+100; Q1();//提示词 
+	printf("存款成功!\n您的已成功存入100元!\n您的账户余额为:%lf\n",user[order].money);
+	printf("\n\t交易时间：\n");date(); system("color 6F"); V1();//返回菜单页倒计时提示
+	break;
+case 2:
+	user[order].money=user[order].money+200;  Q1();//提示词 
+	printf("存款成功!\n您的已成功存入200元!\n您的账户余额为:%lf\n",user[order].money);
+	printf("\n\t交易时间：\n");date(); system("color 6F"); V1();//返回菜单页倒计时提示
+	break;
+case 3:
+	user[order].money=user[order].money+500;Q1();//提示词 
+	printf("存款成功!\n您的已成功存入500元!\n您的账户余额为:%lf\n",user[order].money);
+	printf("\n\t交易时间：\n");date(); system("color 6F");V1();//返回菜单页倒计时提示
+	break;
+case 4:
+				user[order].money=user[order].money+1000; Q1();//提示词 
+				printf("存款成功!\n您的已成功存入1000元!\n您的账户余额为:%lf\n",user[order].money);
+				printf("\n\t交易时间：\n");date(); system("color 6F");V1();//返回菜单页倒计时提示 
+				break;
+case 5:
+	user[order].money=user[order].money+2000; Q1();//提示词 
+	printf("存款成功!\n您的已成功存入2000元!\n您的账户余额为:%lf\n",user[order].money);
+	printf("\n\t交易时间：\n");date(); system("color 6F");V1();//返回菜单页倒计时提示
+	break;
+case 6:
+				printf("**************请输入你想要存入的金额***************\n");//取款自定义金额    
+				int j;scanf("%d",&j);	
+				user[order].money=user[order].money+j;system("cls");Q1();//提示词 
+				printf("存款成功!\n您的已成功存入%d元!\n您当前账户余额为:%lf\n",j,user[order].money); 
+				printf("\n\t交易时间：\n");date(); system("color 6F");V1();//返回菜单页倒计时提示
+				break;
+}
+}
+else    {
+	printf("\t您的密码好像输错了哦！！\n\n\n");	
+	V1();
+}
+}
+else    {
+	printf("\t账号状态异常！！\n\n\n");
+	V1();
+}
+}
+else
+{
+	printf("\t账户不存在！！\n\n\n");
+	V1();
+}
+}
+
+void cunkuan2()	//英文版存钱
+{   date2(); 
+int exist,status,id,password,order;
+double money;
+printf("Please enter your account ：");//请输入您的账号
+scanf("%d",&id);
+exist = judge_exist2(id);	
+if(exist != 0)
+{
+	order = id-1000;
+	status = judge_status2(user[order].status);
+	if(status == 0)
 	{
-		while(!feof(fp))
+		printf("Please enter your password：");//请输入你的密码 
+		scanf("%d",&password);
+		if(password == user[order].Password)
 		{
-			//创建结点
-			Account *newNode=(Account *)malloc(sizeof(Account));
-			
-			//结点初始化
-			newNode->next=NULL;
-			fscanf(fp,"%s\t%s\t%s\t%s\t%s\t%f\n",newNode->name,newNode->password,newNode->username,newNode->idCard,newNode->tel,&newNode->money);
-			
-			//添加结点到链表 
-			if(head==NULL)
+			printf("Account name ：%s\n",user[order].Name);
+			printf("*******************************************************\n"); 
+			printf("**********Please select your deposit amount*************\n");//请选择您的存款金额
+			printf("-----------1.100yuan-------------2.200yuan-------------\n"); 
+			printf("-----------3.500yuan-------------4.1000yuan------------\n"); 
+			printf("---------- 5.2000yuan------------6.Other amounts-------\n"); 
+			printf("*******************************************************\n");
+			printf("Please enter the amount you want to deposit and put the cash in the banknote holder .......\n\n");
+			int i;scanf("%d",&i);system("cls");
+			switch(i)
 			{
-				head=newNode;
-				tail=newNode;
+			case 1: 
+				user[order].money=user[order].money+100; Q2();
+				printf("The deposit was successful !\nYou have successfully deposited $ 100 !\nYour account balance is  :%lf yuan\n",user[order].money);
+				printf("\n\tTrading hours ：\n");date(); system("color 6F"); V2();
+				break;
+			case 2:
+				user[order].money=user[order].money+200; Q2();
+				printf("The deposit was successful !\nYou have successfully deposited $ 200 !\nYour account balance is  :%lf yuan\n",user[order].money);
+				printf("\n\tTrading hours ：\n");date(); system("color 6F");V2();
+				break;
+			case 3:
+				user[order].money=user[order].money+500; Q2();
+				printf("The deposit was successful !\nYou have successfully deposited $ 500 !\nYour account balance is  :%lf yuan\n",user[order].money);
+				printf("\n\tTrading hours ：\n");date(); system("color 6F");V2();
+				break;
+			case 4:
+				user[order].money=user[order].money+1000;  Q2();
+				printf("The deposit was successful !\nYou have successfully deposited $ 1000 !\nYour account balance is  :%lf yuan\n",user[order].money);
+				printf("\n\tTrading hours ：\n");date(); system("color 6F");V2();
+				break;
+			case 5:
+				user[order].money=user[order].money+2000; Q2();
+				printf("The deposit was successful !\nYou have successfully deposited $ 2000 !\nYour account balance is  :%lf yuan\n",user[order].money);
+				printf("\n\tTrading hours ：\n");date(); system("color 6F");V2();
+				break;
+			case 6:
+				printf("**************Please enter the amount you wish to deposit ***************\n");//取款自定义金额    
+				int j=0;scanf("%d",&j);	
+				user[order].money=user[order].money+j; system("cls"); Q2();
+				printf("The deposit was successful !\nYou have successfully deposited $ %d !\nYour account balance is  :%lf yuan\n",j,user[order].money); 
+				printf("\n\tTrading hours ：\n");date(); system("color 6F");V2();
+				break;
+			}
+		}
+		else
+		{
+			printf("\tYour password seems to have been entered incorrectly！！\n\n\n");	//您的密码好像输错了哦
+			V2();	//返回菜单页
+		}
+	}
+	else
+	{
+		printf("\tThe account status is abnormal！！ \n\n\n");//账号状态异常
+		     	V2();//返回菜单页 
+	}
+}
+else
+{   printf("\tAccount number does not exist！！ \n\n\n");//账户不存在
+V2();//返回菜单页 
+}
+}
+
+
+void Qut()//取款业务 
+{ date();
+int exist,status,id,password,order;
+double money;
+printf("请输入您的账号：");
+scanf("%d",&id);
+exist = judge_exist(id);//判断账号是否存在	
+if(exist != 0)
+{	order = id-1000;
+status = judge_status(user[order].status);//判断账户状态是否正常 
+if(status == 0)
+{
+	printf("请输入密码：");
+	scanf("%d",&password);
+	if(password == user[order].Password)//判断密码是否正确 
+	{
+		printf("账户名：%s\n",user[order].Name);//显示之前输入的账户名 
+		printf("****************请选择您的取款金额*****************\n");
+		printf("-----------1.100元-------------2.200元-------------\n"); 
+		printf("-----------3.500元-------------4.1000元------------\n"); 
+		printf("---------- 5.2000元------------6.其他金额----------\n"); 
+		printf("***************************************************\n");
+		printf("***************************************************\n"); 
+		int i=0;	scanf("%d",&i);system("cls");
+		switch(i)
+		{	case 1:  if(user[order].money>=100)//判断取款金额与余额 大于则可以取款 
+		{   user[order].money=user[order].money-100;Q1(); //提示词 
+		printf("取款成功!\n您的已成功取出100元!\n您当前账户的余额为:%f元\n", user[order].money);
+		printf("\n\t交易时间：\n");date(); system("color 6F");V1();//返回菜单页倒计时提示
+					   break;
+		}
+		else {
+			printf("\t您的余额不足，请重新操作！！\n");
+			V1();
+			break; 
+		}
+		case 2:  if(user[order].money>=200)
+				 {  user[order].money=user[order].money-200;  Q1();
+			printf("取款成功!\n您的已成功取出200元!\n您当前账户的余额为:%f元\n",user[order].money);
+			printf("\n\t交易时间：\n");date(); system("color 6F");V1();
+			break;
+				 }
+			else {
+				printf("\t您的余额不足，请重新操作！！\n");
+				V1();
+				break;
+			}
+		case 3: if(user[order].money>=500)
+				{
+					user[order].money=user[order].money-500;  Q1();
+					printf("取款成功!\n您的已成功取出500元!\n您当前账户的余额为:%f元\n",user[order].money);
+					printf("\n\t交易时间：\n");date(); system("color 6F");V1();
+					break;
+				}
+			else {
+				printf("\t您的余额不足，请重新操作！！\n");
+				V1();
+				break;
+			}
+		case 4: if(user[order].money>=1000)
+				{  user[order].money=user[order].money-1000;Q1();
+			printf("取款成功!\n您的已成功取出1000元!\n您当前账户的余额为:%f元\n",user[order].money);
+				        printf("\n\t交易时间：\n");date(); system("color 6F"); V1();
+						break;
+				}
+			else {
+				printf("\t您的余额不足，请重新操作！！\n");
+				V1();
+				break;
+			}
+		case 5:if(user[order].money>=2000)
+			   {     user[order].money=user[order].money-2000; Q1();
+			printf("取款成功!\n您的已成功取出2000元!\n您当前账户的余额为:%f元\n",user[order].money);
+			printf("\n\t交易时间：\n");date(); system("color 6F"); V1();
+			break;
+			   }
+			else {
+				printf("\t您的余额不足，请重新操作！！\n");
+				V1();
+				break;
+			}
+		case 6: printf("**************请输入你想要取款的金额***************\n");//取款自定义金额   
+			int j=0;scanf("%d",&j); 
+			if(user[order].money>j)//判断输入的金额与余额 余额大于输入的金额则可以取款 
+			{
+				system("cls");
+				user[order].money=user[order].money-j;Q1();
+				printf("取款成功!\n您的已成功取出%d元!\n您当前账户的余额为:%f元\n",j,user[order].money); 
+				printf("\n\t交易时间：\n");date(); system("color 6F");V1();
+				break;
+			}
+			else     {
+				printf("\t您的余额不足，请重新操作！！\n"); 
+				V1();
+				break;
+			}
+		}
+	}
+	else
+	{
+		printf("\t您的密码好像输错了哦！！\n\n");
+		V1();
+	}
+}
+else
+{
+	printf("\t账号状态异常！！\n\n\n");
+	V1();	
+	
+}
+}
+else
+{
+	printf("\t账户不存在！！\n\n\n");
+	V1();
+}
+}
+
+void Qut2()//英文版取款业务 
+{
+	int exist,status,id,password,order;
+	double money;
+	printf("Please enter your account：");
+	scanf("%d",&id);
+	exist = judge_exist2(id);	
+	if(exist != 0)
+	{
+		order = id-1000;
+		status = judge_status2(user[order].status);
+		if(status == 0)
+		{
+			printf("Please enter the password ：");
+			scanf("%d",&password);
+			if(password == user[order].Password)
+			{
+				printf("Your account number is ：%s\n",user[order].Name);
+				printf("*******Please select your withdrawal amount********\n");
+				printf("-----------1.100元-------------2.200元-------------\n"); 
+				printf("-----------3.500元-------------4.1000元------------\n"); 
+				printf("---------- 5.2000元------------6.Other amounts-----\n"); 
+				printf("***************************************************\n");
+				printf("***************************************************\n"); 
+				int i=0;
+				scanf("%d",&i);
+				system("cls");
+				switch(i)
+				{
+				case 1: if(user[order].money>=100)
+						{   user[order].money=user[order].money-100; 
+					Q2();
+					printf("The withdrawal was successful !\nYou have successfully checked out 100yuan!\nThe balance of your current account is :%fyuan\n", user[order].money);
+					printf("\n\tTrading hours ：\n");date(); system("color 6F"); V2();
+					break;
+						}
+					else {
+                        printf("Your balance is insufficient. Please re-operate ！\n");//你的余额不足，请重新操作！
+						V2();
+                    }
+				case 2:  if(user[order].money>=200)
+						 {     user[order].money=user[order].money-200; 
+					Q2();
+					printf("The withdrawal was successful !\nYou have successfully checked out 200yuan!\nThe balance of your current account is :%fyuan\n",user[order].money);
+					printf("\n\tTrading hours ：\n");date(); system("color 6F"); V2();
+					break;
+						 }
+					else { printf("Your balance is insufficient. Please re-operate ！\n");//你的余额不足，请重新操作！
+					V2();
+					break;
+					}
+				case 3: if(user[order].money>=500)
+						{      user[order].money=user[order].money-500; 
+					Q2();
+					printf("The withdrawal was successful !\nYou have successfully checked out 500yuan!\nThe balance of your current account is :%fyuan\n",user[order].money);
+					printf("\n\tTrading hours ：\n");date(); system("color 6F"); V2();
+					break;
+						}
+					else {
+						printf("Your balance is insufficient. Please re-operate ！\n");//你的余额不足，请重新操作！
+                        V2();
+                        break;
+					}
+				case 4: if(user[order].money>=1000)
+						{
+							user[order].money=user[order].money-1000; Q2(); 
+							printf("The withdrawal was successful !\nYou have successfully checked out 1000yuan!\nThe balance of your current account is :%f元\n",user[order].money);
+							printf("\n\tTrading hours ：\n");date(); system("color 6F"); V2();
+							break;
+						}
+					else {
+						printf("Your balance is insufficient. Please re-operate ！\n");//你的余额不足，请重新操作！
+						printf("\n\tTrading hours ：\n");date(); system("color 6F"); V2();
+						break;
+					}
+				case 5:if(user[order].money>=2000)
+					   {
+						   user[order].money=user[order].money-2000; 
+						   Q2();
+						   printf("The withdrawal was successful !\nYou have successfully checked out 2000yuan!\nThe balance of your current account is :%f元\n",user[order].money);
+						   printf("\n\tTrading hours ：\n");date(); system("color 6F"); V2();
+						   break;
+					   }
+					else {
+						printf("Your balance is insufficient. Please re-operate ！\n");//你的余额不足，请重新操作！
+                        V2();
+						break;
+					}
+				case 6:
+					printf("**********Please select the balance you want to withdraw ********\n");//取款自定义金额   
+					int j=0; scanf("%d",&j);
+					if(user[order].money>j) 
+					{
+						system("cls");
+						user[order].money=user[order].money-j;
+						Q2();
+						printf("The withdrawal was successful !\nYou have successfully checked out %d yuan!\nThe balance of your current account is :%f元\n",j,user[order].money); 
+						printf("\n\tTrading hours ：\n");date(); system("color 6F"); V2();
+						break;
+					}
+					else 
+					{
+						printf("\tYour balance is insufficient. Please re-operate ！！\n"); //你的余额不足，请重新操作
+						V2();
+						break;
+					}
+				}
+            }
+			else
+			{
+				printf("\tYour password seems to have been entered incorrectly！！\n\n");//您的密码好像输错了哦！
+				V2();
+			}
+}
+else
+{
+	printf("\tThe account status is abnormal！！ \n\n\n");//账号状态异常
+	V2();	
+}
+}
+else
+{
+	printf("\tAccount number does not exist！！\n\n\n");//账户不存在
+	V2();
+}
+}
+
+
+void Search()	//查询
+{  
+	int exist,id,password,order;
+	printf("请输入您的账号：");
+	scanf("%d",&id);
+	exist = judge_exist(id);//判断账号是否存在 
+	if(exist != 0)
+	{	order = exist - 1000;
+	printf("请输入您的密码：");
+	scanf("%d",&password);
+	if(password == user[order].Password)
+	{
+		switch(user[order].status)	//获取账号状态 0正常 1冻结（挂失） 
+		{ 
+		case 0:date();printf("账号：%d\t姓名：%s\t状态：正常\t余额：%lf\t 联系电话：%s\n\n\n",id,user[order].Name,user[order].money,user[order].numble);break;
+		case 1:date();printf("账号：%d\t姓名：%s\t状态：冻结\t余额：%lf\t 联系电话：%s\n\n\n",id,user[order].Name,user[order].money,user[order].numble);break;
+			
+		}
+	}
+	else
+	{
+		printf("\t密码错误！！\n\n\n");
+		V1();//返回菜单倒计时 
+	}
+	}
+}
+void Search2()	//英文版查询
+{  
+	int exist,id,password,order;
+	printf("Please enter your account：");
+	scanf("%d",&id);
+	exist = judge_exist2(id);
+	if(exist != 0)
+	{
+		order = exist - 1000;
+		printf("Please enter your password：");
+		scanf("%d",&password);
+		if(password == user[order].Password)
+		{  
+			switch(user[order].status)	//获取账号状态
+			{
+			case 0:date2();printf("Account：%d\tName：%s\tStatus：Normal\tBalance：%lf\t Contact number：%d\n\n\n",id,user[order].Name,user[order].money,user[order].numble);break;
+			case 1:date2();printf("Account：%d\tName：%s\tStatus：Report loss\tBalance：%lf\t Contact number：%d\n\n\n",id,user[order].Name,user[order].money,user[order].numble);break;
+			case 2:date2();printf("Account：%d\tName：%s\tStatus：Freeze\tBalance：%lf\t Contact number：%d\n\n\n",id,user[order].Name,user[order].money,user[order].numble);break;
+			}
+		}
+		else
+		{	printf("\tWrong password ！！\n\n\n");
+		V2();
+		}
+	}
+}
+
+void Move_Money()	//转账
+{  
+	int exist,status,id,password,order,id1,exist1,order1,status1;
+	double money;
+	printf("请输入您的账号：");
+	scanf("%d",&id);
+	exist = judge_exist(id);//返回a的值为输入的id，则存在，返回0，则不存在。 
+	if(exist != 0)
+	{	order = id- 1000;
+	status = judge_status(user[order].status);//判断账户状态 status为0 则为正常状态 
+	if(status == 0)
+	{
+		printf("请输入密码：");
+		scanf("%d",&password);
+		if(password == user[order].Password)
+		{
+			printf("请输入您要转账的账号：");
+			scanf("%d",&id1);
+			exist1 = judge_exist(id1);//判断对方账户是否存在 
+			if(exist1 != 0)
+			{
+				order1 = id1 - 1000;
+				status1 = judge_status(user[order1].status);//判断对方账户状态是否正常  不正常无法进行转账 
+				if(status1 == 0)
+				{
+					if(id!=id1)
+					{				 
+						printf("请输入您要转账的金额：");
+						scanf("%lf",&money);
+						user[order].money=user[order].money-money;//减少 
+						user[order1].money=user[order1].money+money;//对方增加 
+						if(user[order].money >= 0)
+						{
+							printf("\n恭喜您!!转账成功!!!\n您已成功向账号为 %d 的用户转入:%f元 \n您的当前余额为:%lf元\n\n\n",id1,money,user[order].money); 
+							xinxi();V1();system("cls");
+						}
+						else
+						{
+							printf("\t余额不足，转账失败啦！！\n\n\n");
+							user[order].money=user[order].money + money;
+							user[order1].money=user[order1].money - money;
+						}
+					}
+					else
+					{
+						printf("\t无法进行自我转账！请输入其他有效账号！！\n");
+						system("pause");   system("cls");
+						printf("3秒后返回菜单页...\n");
+						Sleep(3000);system("cls");	
+					}
+				}
+				else
+				{		printf("\t对方账号状态异常！！\n\n\n");
+				V1();
+				}
 			}
 			else
 			{
-				tail->next=newNode;
-				tail=newNode;
+				printf("\t账户不存在！！\n\n\n");
+				V1();
 			}
 		}
-		fclose(fp); 
+		else
+		{				
+			printf("\t您的密码好像输错了哦！！！\n\n");
+			V1();		    	      	
+		}
+	}
+	else
+	{		
+		printf("\t账号状态异常！！\n\n\n");
+		V1();
+	}
+	}
+	else
+	{	
+		printf("\t账户不存在！！\n\n\n");
+		V1();		
 	}
 }
+void Move_Money2()	//英文版转账
 
-void saveData()
-{
-	FILE* fp=fopen("D:/atm.txt","w");
-	if(fp!=NULL)
+{  
+	void  Disolay();
+	int exist,status,id,password,order,id1,exist1,order1,status1;
+	double money;
+	printf("Please enter your account：");
+	scanf("%d",&id);
+	exist = judge_exist2(id);//返回a的值为输入的id，则存在，返回0，则不存在。 
+	if(exist != 0)
 	{
-		Account* curP=head;
-	    while(curP!=NULL)
-	    {
-		    fprintf(fp,"%s\t%s\t%s\t%s\t%s\t%f\n",curP->name,curP->password,curP->username,curP->idCard,curP->tel,curP->money);
-		    curP=curP->next;
-	    }
-	    fclose(fp);
+		order = id- 1000;
+		status = judge_status2(user[order].status);//判断账户状态 status为0 则为正常状态 
+		if(status == 0)
+		{
+			printf("Please enter your password：");
+			scanf("%d",&password);
+			if(password == user[order].Password)
+			{
+				printf("Please enter the account number you want to transfer：");
+				scanf("%d",&id1);
+				exist1 = judge_exist2(id1);
+				if(exist1 != 0)
+				{
+					order1 = id1 - 1000;
+					status1 = judge_status2(user[order1].status);
+					if(status1 == 0)
+					{
+						if(id!=id1)
+						{
+							printf("Please enter the amount you want to transfer ：");
+							scanf("%lf",&money);
+							user[order].money=user[order].money-money;
+							user[order1].money=user[order1].money+money;
+							if(user[order].money >= 0)
+							{
+								printf("\nCongratulations!!!The transfer was successful!!!\nYou have successfully transferred %fyuan to %d users \n您的当前余额为:%lf元\n\n\n",money,id1,user[order].money); 
+								xinxi();V2();system("cls");
+								Disolay();
+							}
+							else
+							{	printf("\tThe balance is insufficient, the transfer failed ！！\n\n\n");
+							user[order].money=user[order].money + money;
+							user[order1].money=user[order1].money - money;
+							}
+						}
+						else
+						{		 printf("\telf-transfer cannot be performed. Please enter another valid account number ！！\n");
+						system("pause");
+						system("cls");
+						printf("Return to the menu page after 3 seconds ...\n");
+						Sleep(3000);
+						system("cls");								
+					}	}
+					else
+					{	printf("\tThe account status of the other party is abnormal ！！\n\n\n");
+					V2();
+					}
+				}
+				else
+				{			printf("\tAccount number does not exist\n\n\n");
+				V2();	      
+				}
+			}
+			else
+			{   printf("\tYour password seems to have been entered incorrectly！！\n\n\n");	//您的密码好像输错了哦
+			V2();	
+		}	}
+		else
+		{		printf("\tThe account status is abnormal！！ \n\n\n");//账号状态异常
+		V2();
+		}
+	}
+	else
+	{	printf("\tAccount number does not exist！！ \n\n\n");//账户不存在
+	V2();
 	}
 }
 
-int main()
+
+//挂失 挂失成功 账户冻结显示异常 无法进行其他业务操作 
+void Lose()
 {
-	loadData();//加载账户信息 
-	printf("中文服务，请按1\n");
-	printf("English Service,press 2\n");
-	scanf("%d",&language);
-	
-	showMenu();
-	
-	printLinkedList();
-	saveData();
-	
-	return 0;
+	int exist,id,password,order;
+	printf("请输入您的账号：");
+	scanf("%d",&id);
+	exist = judge_exist(id);//判断账号是否存在 
+	if(exist != 0)
+	{	order = id- 1000;
+	printf("请输入您的密码：");
+	scanf("%d",&password);
+	if(password == user[order].Password)
+	{
+		user[order].status = 1;//status 为 1冻结 将存入结构体里 
+		printf("\n\t账号为 %d 的用户 挂失成功！！\n\n\n",user[order].id);
+		V1();
+	}
+	else
+	{
+		printf("\t您的密码好像输错了哦！！\n\n\n");
+		V1();
+	}
+	}
+	else{
+		printf("\t账户不存在！！\n\n\n");
+		V1();
+	}
 }
- 
+void Lose2()//英文版挂失
+{
+	int exist,id,password,order;
+	printf("Please enter your account：");
+	scanf("%d",&id);
+	exist = judge_exist2(id);
+	if(exist != 0)
+	{
+		order = id- 1000;
+		printf("Please enter your password：");
+		scanf("%d",&password);
+		if(password == user[order].Password)
+		{
+			user[order].status = 1;
+			printf("\tReport the loss successfully ！！\n\n\n");
+			V1();
+		}
+		else
+		{
+			printf("\tYour password seems to have been entered incorrectly！！\n\n\n");
+			V1(); 
+		}
+	}
+	else
+	{
+		printf("\tAccount number does not exist！！\n\n\n");
+		V1();
+	}
+}
+
+//解挂
+void UnLose()
+{
+	int exist,id,password,order;
+	printf("请输入您的账号：");
+	scanf("%d",&id);
+	exist = judge_exist(id);//返回a的值为输入的id存在，  返回0，则不存在。 
+	if(exist != 0)
+	{
+		order = id - 1000; //判断账户 
+		printf("请输入您的密码：");
+		scanf("%d",&password);
+		if(password == user[order].Password)
+		{
+			user[order].status = 0;//status 值为0 状态正常 
+			printf("\n\t账号为 %d 的用户 解挂成功！！\n\n\n",user[order].id);
+			V1();
+		}
+		else{
+			printf("\t您的密码好像输错了哦！！\n\n\n");
+			V1();
+		}
+	}
+	else
+	{
+		
+		printf("\t账户不存在！！\n");	V1();
+	}
+}
+
+void UnLose2()//英文版解挂
+{	int exist,id,password,order;
+printf("Please your account:");
+scanf("%d",&id);
+exist = judge_exist2(id);//返回a的值为输入的id，则存在，返回0，则不存在。 
+if(exist != 0)
+{	order = id - 1000; //判断账户 
+printf("Please your password：");
+scanf("%d",&password);
+if(password == user[order].Password)
+{
+	user[order].status = 0;
+	printf("\n\tUnhang was successful！！\n\n\n");V2();
+}
+else{
+	printf("\tYour password seems to have been entered incorrectly！！\n\n\n"); V2();
+}
+}
+else
+{
+	printf("\tAccount number does not exist！！\n");V2();
+}
+}
+
+void XiaoHu()//销户
+{
+	int exist,id,password,order;
+	printf("请输入您的账号：");
+	scanf("%d",&id);
+	exist = judge_exist(id);//返回a的值为输入的id存在，返回0，则不存在。
+	if(exist != 0)
+	{ 	order = id - 1000;
+	status = judge_status(user[order].status);//判断账户状态 status为0 则为正常状态 
+	if(status == 0)
+	{
+		printf("请输入您的密码：");
+		scanf("%d",&password);
+		if(password == user[order].Password)
+		{	    user[order].id = 0;
+		printf("\t销户成功！！\n\n\n");
+		V1();
+		}
+		else{
+			
+			printf("\t您的密码好像输错了哦！！\n\n\n");
+			V1();
+		}
+	}
+	else{
+		
+		printf("\t账户状态异常！！\n");V1();//返回菜单提示语 
+	}
+	}
+}
+void XiaoHu2()// 英文版销户 
+{
+	int exist,id,password,order;
+	printf("Please enter your account：");
+	scanf("%d",&id);
+	exist = judge_exist2(id);
+	if(exist != 0)
+	{	order = id - 1000;
+	status = judge_status(user[order].status);//判断账户状态 status为0 则为正常状态 
+	if(status == 0)
+	{
+		printf("Please enter the password ：");
+		scanf("%d",&password);
+		if(password == user[order].Password)
+		{	user[order].id = 0;
+		printf("\tAccount cancellation is successful ！！\n\n\n");
+		V2();
+		}
+		else
+			printf("\tYour password seems to have been entered incorrectly！！\n\n\n");
+		V2();
+	}
+	else
+	{
+		printf("\tAccount number does not exist！！\n");	V2();
+	}
+	}
+}
+
+void ChangePassword()	//改密
+{	int exist,id,order,password,password1,password2;
+printf("请输入您的账号：");
+scanf("%d",&id);
+exist = judge_exist(id); //判断账号是否存在 返回a的值为输入的id存在，返回0，则不存在。 
+if(exist != 0)
+{	order = id - 1000;
+status = judge_status(user[order].status);//判断账户状态 status为0 则为正常状态 
+if(status == 0)
+{
+	printf("请输入您原密码：");
+	scanf("%d",&password);
+	if(password == user[order].Password)//判断原密码是否正常 
+	{	printf("请输入新密码:");
+	scanf("%d",&password1);
+	printf("请再次输入新密码:");
+	scanf("%d",&password2);
+	if(password1!=password||password2!=password) //判断两次输入的新密码是否与原密码相同 
+	{
+		if(password1==password2)//判断两次输入的新密码是否相同 
+		{
+			user[order].Password=password2;
+			printf("恭喜您密码修改成功！\n\n\n");
+			V1();
+		}
+		else
+		{	printf("你两次输入的密码不一致，请重新操作！！！\n");
+		V1();
+		}   
+	}
+			 else{
+				 printf("您输入的新密码与原密码一致,改密失败！！");
+				 V1();
+			 }
+	}
+	else{
+		printf("您的密码好像输错了哦！！\n\n\n");
+		V1();
+	}
+}
+}
+else
+{
+	printf("\t账户不存在！！\n");	V1();
+}
+}
+void ChangePassword2()	//英文版改密
+{   date2();
+int exist,id,order,password,password1,password2;
+printf("Please enter your account：");
+scanf("%d",&id);
+exist = judge_exist2(id); 
+if(exist != 0)
+{	order = id - 1000;status = judge_status(user[order].status);//判断账户状态 status为0 则为正常状态 
+if(status == 0)
+{
+	printf("\nPlease enter your original password ：");
+	scanf("%d",&password);
+	if(password == user[order].Password)
+	{	printf("\nPlease enter a new password :");
+	scanf("%d",&password1);
+	printf("\nPlease enter the new password again ：");
+	scanf("%d",&password2);			
+	if(password1!=password||password2!=password) 
+	{	if(password1==password2)
+	{  user[order].Password=password2;
+	printf("\tCongratulations！！On changing your password successfully！！ \n\n\n");
+	V2();
+	}
+	else
+	{
+		printf("\tThe passwords you entered do not match. Please try again ！！！\n");
+		V2();        
+	  	}
+	}
+			 else{
+				 printf("\tThe new password you entered is the same as the original password. Failed to change the password！！");
+				 V2();			      
+			 }
+	}
+	else{	printf("\tYour password seems to have been entered incorrectly！！\n\n\n");
+				V2();
+	}
+}
+else
+{
+	printf("\tAccount number does not exist！！\n");V2();
+}
+}	
+}
+void tuichu()//退出业务 
+{ date();//日期 
+int i;
+printf("请对本台ATM机给予评价！\n");
+printf("1.非常满意 2.满意 3.一般 4.不满意\n\n"); 
+printf("评价：\n");
+scanf("%d",&i);
+printf("感谢您对本台ATM机的评价\n欢迎下次使用！！");
+}
+void tuichu2()//退出业务 
+{        date2();
+int i;
+printf("Please give an evaluation of this ATM machine ！！！\n");
+printf("1.Very satisfied  2.Satisfy  3.Ordinary  4.Not satisfied \n\n"); 
+printf("Evaluate ： ");
+scanf("%d",&i);
+printf("Thank you for your evaluation of this ATM machine ！！\n\n Welcome to use next time ！！");
+}
+
+
+int main()//主函数 
+{ system("color 3F");//颜色 
+date();//时间 
+V();//提示词--欢迎使用ATM... 
+int i;
+printf("\n\t请选择语言：1.中文 2.English\n");
+scanf("%d",&i); 
+switch(i)
+{
+case 1:
+	system("cls");
+	printf("****************************请先注册*********************************\n"); 
+	zhuce();break;//注册 
+case 2:
+	system("cls");
+	printf("********************** please register fist **************************\n"); 
+	zhuce2();//英文版注册 
+}
+return 0;
+}
+
+
